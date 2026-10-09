@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OmniTools | 100% Private Client-Side PDF & Image Studio</title>
+    <meta name="description" content="Free, unlimited, and private PDF and image utility. Merge PDFs, convert WebP to PNG/JPG, and convert PDF to images locally in your browser with zero server uploads.">
+    
+    <!-- Tailwind CSS & Icons -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Client-Side Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    </script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between font-sans">
+
+    <!-- Header -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50 px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <div class="bg-indigo-600 text-white p-2.5 rounded-xl shadow-md shadow-indigo-600/30">
+                <i class="fa-solid fa-shield-halved text-lg"></i>
+            </div>
+            <div>
+                <h1 class="font-extrabold text-xl tracking-tight text-white">OmniTools</h1>
+                <p class="text-xs text-indigo-400 font-medium">100% Private Client-Side Studio</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-4 text-xs text-slate-400">
+            <span class="hidden sm:inline"><i class="fa-solid fa-lock text-emerald-400 mr-1"></i> Zero Server Uploads</span>
+            <span class="hidden sm:inline"><i class="fa-solid fa-bolt text-amber-400 mr-1"></i> Instant Engine</span>
+            <span class="bg-slate-800 text-slate-300 px-2.5 py-1 rounded-full font-mono text-[11px] border border-slate-700">v1.0 Free</span>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow max-w-5xl mx-auto w-full px-4 py-8">
+
+        <!-- Privacy Banner -->
+        <div class="bg-emerald-950/40 border border-emerald-800/40 rounded-xl p-3.5 mb-8 flex items-center justify-between text-xs text-emerald-300">
+            <div class="flex items-center gap-2.5">
+                <i class="fa-solid fa-shield-cat text-base text-emerald-400"></i>
+                <span><strong>Zero-Knowledge Privacy:</strong> All processing executes in your browser memory. Your files are never sent to any server.</span>
+            </div>
+            <span class="hidden md:inline font-mono text-[11px] text-emerald-500">Offline Capable</span>
+        </div>
+
+        <!-- Tool Selection Tabs -->
+        <div class="flex flex-wrap items-center justify-center gap-2 mb-8">
+            <button onclick="switchTab('imgConvert')" id="tab-imgConvert" class="tab-btn px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 bg-indigo-600 text-white shadow-lg shadow-indigo-600/20">
+                <i class="fa-regular fa-image"></i> Image Converter
+            </button>
+            <button onclick="switchTab('pdfMerge')" id="tab-pdfMerge" class="tab-btn px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 bg-slate-900 text-slate-400 hover:text-white border border-slate-800">
+                <i class="fa-solid fa-object-group"></i> Merge PDFs
+            </button>
+            <button onclick="switchTab('imgToPdf')" id="tab-imgToPdf" class="tab-btn px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 bg-slate-900 text-slate-400 hover:text-white border border-slate-800">
+                <i class="fa-solid fa-file-pdf"></i> Images to PDF
+            </button>
+            <button onclick="switchTab('pdfToImg')" id="tab-pdfToImg" class="tab-btn px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 bg-slate-900 text-slate-400 hover:text-white border border-slate-800">
+                <i class="fa-regular fa-images"></i> PDF to Images
+            </button>
+        </div>
+
+        <!-- 1. MODULE: IMAGE CONVERTER -->
+        <div id="mod-imgConvert" class="tool-module bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl">
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-black text-white mb-1">Convert Image Format</h2>
+                <p class="text-xs text-slate-400">Instantly convert WebP, PNG, or JPG files without loss in quality.</p>
+            </div>
+            
+            <div class="flex justify-center items-center gap-3 mb-6">
+                <span class="text-xs font-bold text-slate-400">Target Format:</span>
+                <div class="inline-flex rounded-lg bg-slate-950 p-1 border border-slate-800">
+                    <button id="btnImgPng" onclick="setImgFormat('image/png', 'png')" class="px-4 py-1.5 rounded-md text-xs font-bold bg-indigo-600 text-white">PNG</button>
+                    <button id="btnImgJpg" onclick="setImgFormat('image/jpeg', 'jpg')" class="px-4 py-1.5 rounded-md text-xs font-bold text-slate-400 hover:text-white">JPG</button>
+                </div>
+            </div>
+
+            <div onclick="document.getElementById('inputImgConvert').click()" class="border-2 border-dashed border-slate-700 hover:border-indigo-500 bg-slate-950/60 rounded-xl p-8 text-center cursor-pointer transition">
+                <input type="file" id="inputImgConvert" accept="image/*" class="hidden">
+                <i class="fa-solid fa-cloud-arrow-up text-3xl text-indigo-400 mb-2"></i>
+                <p class="text-white font-bold text-sm">Drag and drop or browse your image</p>
+                <p class="text-xs text-slate-500 mt-1">WebP, PNG, JPG, BMP supported</p>
+            </div>
+
+            <div id="resImgConvert" class="hidden mt-6 pt-6 border-t border-slate-800 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <img id="prevImgConvert" class="w-12 h-12 object-cover rounded-lg border border-slate-700">
+                    <span id="nameImgConvert" class="text-xs font-bold truncate max-w-xs"></span>
+                </div>
+                <a id="downImgConvert" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-5 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-lg">
+                    <i class="fa-solid fa-download"></i> Download
+                </a>
+            </div>
+            <canvas id="imgCanvas" class="hidden"></canvas>
+        </div>
+
+        <!-- 2. MODULE: MERGE PDF -->
+        <div id="mod-pdfMerge" class="tool-module hidden bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl">
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-black text-white mb-1">Merge PDF Files</h2>
+                <p class="text-xs text-slate-400">Combine multiple PDF documents into a single file in seconds.</p>
+            </div>
+
+            <div onclick="document.getElementById('inputPdfMerge').click()" class="border-2 border-dashed border-slate-700 hover:border-indigo-500 bg-slate-950/60 rounded-xl p-8 text-center cursor-pointer transition">
+                <input type="file" id="inputPdfMerge" accept="application/pdf" multiple class="hidden">
+                <i class="fa-solid fa-file-circle-plus text-3xl text-indigo-400 mb-2"></i>
+                <p class="text-white font-bold text-sm">Select PDF Files (Select 2 or more)</p>
+                <p class="text-xs text-slate-500 mt-1">Processed entirely in your device RAM</p>
+            </div>
+
+            <div id="listPdfMerge" class="mt-4 space-y-2"></div>
+
+            <button id="btnProcessMerge" onclick="processPdfMerge()" class="hidden w-full mt-6 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3.5 rounded-xl text-sm flex items-center justify-center gap-2 shadow-lg">
+                <i class="fa-solid fa-merge"></i> Merge & Download PDF
+            </button>
+        </div>
+
+        <!-- 3. MODULE: IMAGES TO PDF -->
+        <div id="mod-imgToPdf" class="tool-module hidden bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl">
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-black text-white mb-1">Convert Images to PDF</h2>
+                <p class="text-xs text-slate-400">Turn scanned papers, receipts, or photos into a structured PDF document.</p>
+            </div>
+
+            <div onclick="document.getElementById('inputImgToPdf').click()" class="border-2 border-dashed border-slate-700 hover:border-indigo-500 bg-slate-950/60 rounded-xl p-8 text-center cursor-pointer transition">
+                <input type="file" id="inputImgToPdf" accept="image/*" multiple class="hidden">
+                <i class="fa-solid fa-images text-3xl text-indigo-400 mb-2"></i>
+                <p class="text-white font-bold text-sm">Select Images (JPG, PNG, etc.)</p>
+                <p class="text-xs text-slate-500 mt-1">Each image will become an individual page</p>
+            </div>
+
+            <div id="listImgToPdf" class="mt-4 flex flex-wrap gap-2"></div>
+
+            <button id="btnProcessImgToPdf" onclick="processImgToPdf()" class="hidden w-full mt-6 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3.5 rounded-xl text-sm flex items-center justify-center gap-2 shadow-lg">
+                <i class="fa-solid fa-file-export"></i> Generate & Download PDF
+            </button>
+        </div>
+
+        <!-- 4. MODULE: PDF TO IMAGES -->
+        <div id="mod-pdfToImg" class="tool-module hidden bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl">
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-black text-white mb-1">Extract PDF Pages as Images</h2>
+                <p class="text-xs text-slate-400">Render every page of your PDF into high-resolution PNG images.</p>
+            </div>
+
+            <div onclick="document.getElementById('inputPdfToImg').click()" class="border-2 border-dashed border-slate-700 hover:border-indigo-500 bg-slate-950/60 rounded-xl p-8 text-center cursor-pointer transition">
+                <input type="file" id="inputPdfToImg" accept="application/pdf" class="hidden">
+                <i class="fa-solid fa-file-image text-3xl text-indigo-400 mb-2"></i>
+                <p class="text-white font-bold text-sm">Select a PDF File</p>
+                <p class="text-xs text-slate-500 mt-1">Pages will be rendered individually for download</p>
+            </div>
+
+            <div id="containerPdfPages" class="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-4"></div>
+        </div>
+
+        <!-- AdSense Container Area -->
+        <div class="border border-dashed border-slate-800 rounded-xl py-6 my-10 text-center text-xs text-slate-600">
+            <span>[ Advertisement Container - Google AdSense ]</span>
+        </div>
+
+        <!-- SEO Information Architecture -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-slate-400 text-xs">
+            <div class="bg-slate-900/60 p-5 rounded-xl border border-slate-800">
+                <h3 class="font-bold text-white text-sm mb-1.5"><i class="fa-solid fa-shield-halved text-indigo-400 mr-1"></i> Privacy Guaranteed</h3>
+                <p>Unlike traditional online tools, your files never touch an external server. Everything stays completely in your browser memory.</p>
+            </div>
+            <div class="bg-slate-900/60 p-5 rounded-xl border border-slate-800">
+                <h3 class="font-bold text-white text-sm mb-1.5"><i class="fa-solid fa-gauge-high text-indigo-400 mr-1"></i> No File Size Limits</h3>
+                <p>Since bandwidth is not consumed by uploading and downloading large files, processing takes place instantaneously using your computer's power.</p>
+            </div>
+            <div class="bg-slate-900/60 p-5 rounded-xl border border-slate-800">
+                <h3 class="font-bold text-white text-sm mb-1.5"><i class="fa-solid fa-infinity text-indigo-400 mr-1"></i> Truly Free</h3>
+                <p>No account required, no subscription paywalls, and no hidden watermarks. Completely unrestricted access.</p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800 py-6 text-center text-xs text-slate-500">
+        <p>© 2026 OmniTools. Processed strictly client-side.</p>
+    </footer>
+
+    <!-- Logic Script -->
+    <script>
+        function switchTab(modId) {
+            document.querySelectorAll('.tool-module').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(el => {
+                el.className = 'tab-btn px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 bg-slate-900 text-slate-400 hover:text-white border border-slate-800';
+            });
+            
+            document.getElementById('mod-' + modId).classList.remove('hidden');
+            document.getElementById('tab-' + modId).className = 'tab-btn px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 bg-indigo-600 text-white shadow-lg shadow-indigo-600/20';
+        }
+
+        /* 1. Image Converter */
+        let imgMime = 'image/png';
+        let imgExt = 'png';
+        function setImgFormat(mime, ext) {
+            imgMime = mime; imgExt = ext;
+            document.getElementById('btnImgPng').className = ext === 'png' ? 'px-4 py-1.5 rounded-md text-xs font-bold bg-indigo-600 text-white' : 'px-4 py-1.5 rounded-md text-xs font-bold text-slate-400 hover:text-white';
+            document.getElementById('btnImgJpg').className = ext === 'jpg' ? 'px-4 py-1.5 rounded-md text-xs font-bold bg-indigo-600 text-white' : 'px-4 py-1.5 rounded-md text-xs font-bold text-slate-400 hover:text-white';
+            const f = document.getElementById('inputImgConvert').files[0];
+            if (f) processImg(f);
+        }
+        document.getElementById('inputImgConvert').addEventListener('change', (e) => {
+            if (e.target.files[0]) processImg(e.target.files[0]);
+        });
+        function processImg(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.getElementById('imgCanvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = img.width; canvas.height = img.height;
+                    if (imgExt === 'jpg') {
+                        ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0,0,canvas.width,canvas.height);
+                    } else {
+                        ctx.clearRect(0,0,canvas.width,canvas.height);
+                    }
+                    ctx.drawImage(img, 0, 0);
+                    const dataUrl = canvas.toDataURL(imgMime, 0.95);
+                    document.getElementById('prevImgConvert').src = dataUrl;
+                    document.getElementById('nameImgConvert').innerText = file.name;
+                    const down = document.getElementById('downImgConvert');
+                    down.href = dataUrl;
+                    down.download = file.name.split('.')[0] + '-converted.' + imgExt;
+                    document.getElementById('resImgConvert').classList.remove('hidden');
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        /* 2. Merge PDF */
+        let mergeFiles = [];
+        document.getElementById('inputPdfMerge').addEventListener('change', (e) => {
+            mergeFiles = Array.from(e.target.files);
+            const list = document.getElementById('listPdfMerge');
+            list.innerHTML = '';
+            if (mergeFiles.length > 0) {
+                mergeFiles.forEach((f, i) => {
+                    list.innerHTML += `<div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800 text-xs flex justify-between items-center">
+                        <span class="truncate"><i class="fa-solid fa-file-pdf text-red-500 mr-2"></i> ${i+1}. ${f.name}</span>
+                        <span class="text-slate-500 font-mono">${(f.size/1024/1024).toFixed(2)} MB</span>
+                    </div>`;
+                });
+                document.getElementById('btnProcessMerge').classList.remove('hidden');
+            }
+        });
+        async function processPdfMerge() {
+            if (mergeFiles.length < 2) {
+                alert('Please select at least 2 PDF files to merge.');
+                return;
+            }
+            const btn = document.getElementById('btnProcessMerge');
+            btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Merging in Browser...';
+            
+            const mergedPdf = await PDFLib.PDFDocument.create();
+            for (const file of mergeFiles) {
+                const arrayBuffer = await file.arrayBuffer();
+                const pdf = await PDFLib.PDFDocument.load(arrayBuffer);
+                const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+                copiedPages.forEach(p => mergedPdf.addPage(p));
+            }
+            const pdfBytes = await mergedPdf.save();
+            const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'merged-document.pdf';
+            a.click();
+            btn.innerHTML = '<i class="fa-solid fa-check text-emerald-400"></i> Done! Download Again';
+        }
+
+        /* 3. Images to PDF */
+        let imgToPdfFiles = [];
+        document.getElementById('inputImgToPdf').addEventListener('change', (e) => {
+            imgToPdfFiles = Array.from(e.target.files);
+            const list = document.getElementById('listImgToPdf');
+            list.innerHTML = '';
+            if (imgToPdfFiles.length > 0) {
+                imgToPdfFiles.forEach(f => {
+                    list.innerHTML += `<div class="bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800 text-xs text-slate-300">
+                        <i class="fa-regular fa-image text-indigo-400 mr-1"></i> ${f.name}
+                    </div>`;
+                });
+                document.getElementById('btnProcessImgToPdf').classList.remove('hidden');
+            }
+        });
+        async function processImgToPdf() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const btn = document.getElementById('btnProcessImgToPdf');
+            btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Compiling PDF...';
+
+            for (let i = 0; i < imgToPdfFiles.length; i++) {
+                if (i > 0) doc.addPage();
+                const file = imgToPdfFiles[i];
+                const base64 = await new Promise(resolve => {
+                    const r = new FileReader();
+                    r.onload = ev => resolve(ev.target.result);
+                    r.readAsDataURL(file);
+                });
+                doc.addImage(base64, 'JPEG', 10, 10, 190, 0);
+            }
+            doc.save('converted-images.pdf');
+            btn.innerHTML = '<i class="fa-solid fa-check text-emerald-400"></i> Done! Download Again';
+        }
+
+        /* 4. PDF to Images */
+        document.getElementById('inputPdfToImg').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const container = document.getElementById('containerPdfPages');
+            container.innerHTML = '<p class="text-xs text-indigo-400 col-span-3 text-center"><i class="fa-solid fa-spinner animate-spin"></i> Rendering pages locally...</p>';
+
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            container.innerHTML = '';
+
+            for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                const page = await pdf.getPage(pageNum);
+                const viewport = page.getViewport({ scale: 1.5 });
+                
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+
+                await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+                const imgUrl = canvas.toDataURL('image/png');
+
+                const card = document.createElement('div');
+                card.className = 'bg-slate-950 border border-slate-800 rounded-xl p-3 flex flex-col items-center gap-2';
+                card.innerHTML = `
+                    <img src="${imgUrl}" class="w-full h-36 object-contain rounded border border-slate-900 bg-white">
+                    <span class="text-[11px] font-bold text-slate-400">Page ${pageNum}</span>
+                    <a href="${imgUrl}" download="page-${pageNum}.png" class="w-full bg-slate-900 hover:bg-indigo-600 text-white font-bold py-1.5 rounded-lg text-center text-xs transition">
+                        <i class="fa-solid fa-download"></i> Download PNG
+                    </a>
+                `;
+                container.appendChild(card);
+            }
+        });
+    </script>
+</body>
+</html>
