@@ -1,358 +1,286 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OmniTools | 100% Private Client-Side PDF & Image Studio</title>
-    <meta name="description" content="Free, unlimited, and private PDF and image utility. Merge PDFs, convert WebP to PNG/JPG, and convert PDF to images locally in your browser with zero server uploads.">
-    
-    <!-- Tailwind CSS & Icons -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!--
+        Content-Security-Policy: the page may load code only from its own folder and
+        may not open ANY network connection (connect-src 'none'). Even if a bug or a
+        malicious PDF tried to send your data somewhere, the browser would block it.
+    -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' blob: data:; font-src 'self' data:; worker-src 'self' blob:; manifest-src 'self'; connect-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'">
+    <meta name="referrer" content="no-referrer">
+    <title>OmniTools | Çevrimdışı ve Gizli PDF &amp; Görsel Araçları</title>
+    <meta name="description" content="Ücretsiz, açık kaynak, tamamen tarayıcıda çalışan PDF ve görsel araçları. Dosyalarınız hiçbir sunucuya yüklenmez, internet olmadan da çalışır.">
+    <meta name="theme-color" content="#0b1020">
+    <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="css/style.css">
 
-    <!-- Client-Side Libraries -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    
-    <script>
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-    </script>
+    <script src="vendor/pdf-lib.min.js" defer></script>
+    <script src="vendor/pdf.min.js" defer></script>
+    <script src="js/i18n.js" defer></script>
+    <script src="js/zip.js" defer></script>
+    <script src="js/app.js" defer></script>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between font-sans">
+<body>
+    <!-- Icon sprite (inline SVG, so no icon font has to be downloaded) -->
+    <svg class="sprite" aria-hidden="true">
+        <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5l-8-3z"/><path d="m9 12 2 2 4-4"/></symbol>
+        <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></symbol>
+        <symbol id="i-merge" viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M12 7v10"/><path d="m8 13 4 4 4-4"/><path d="M5 21h14"/></symbol>
+        <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></symbol>
+        <symbol id="i-images" viewBox="0 0 24 24"><rect x="7" y="7" width="14" height="14" rx="2"/><path d="M3 17V5a2 2 0 0 1 2-2h12"/><path d="m21 17-4-4-7 7"/></symbol>
+        <symbol id="i-scissors" viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.1 15.9"/><path d="M14.5 14.5 20 20"/><path d="M8.1 8.1 12 12"/></symbol>
+        <symbol id="i-eraser" viewBox="0 0 24 24"><path d="m7 21-4.3-4.3a1 1 0 0 1 0-1.4L13.6 4.4a1 1 0 0 1 1.4 0l5.6 5.6a1 1 0 0 1 0 1.4L11 21z"/><path d="M22 21H7"/><path d="m5 11 9 9"/></symbol>
+        <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V4"/><path d="m7 9 5-5 5 5"/><path d="M20 16v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3"/></symbol>
+        <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v12"/><path d="m7 11 5 5 5-5"/><path d="M20 16v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3"/></symbol>
+        <symbol id="i-up" viewBox="0 0 24 24"><path d="m6 15 6-6 6 6"/></symbol>
+        <symbol id="i-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+        <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+        <symbol id="i-wifi-off" viewBox="0 0 24 24"><path d="M2 2l20 20"/><path d="M8.5 16.5a5 5 0 0 1 7 0"/><path d="M5 12.9a10 10 0 0 1 5.2-2.8"/><path d="M19 12.9a10 10 0 0 0-2.3-1.7"/><path d="M2 8.8a15 15 0 0 1 4.2-2.6"/><path d="M22 8.8A15 15 0 0 0 11 5"/><circle cx="12" cy="20" r="1"/></symbol>
+        <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+        <symbol id="i-code" viewBox="0 0 24 24"><path d="m16 18 6-6-6-6"/><path d="m8 6-6 6 6 6"/></symbol>
+        <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></symbol>
+    </svg>
 
-    <!-- Header -->
-    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50 px-6 py-4 flex items-center justify-between">
-        <div class="flex items-center gap-3">
-            <div class="bg-indigo-600 text-white p-2.5 rounded-xl shadow-md shadow-indigo-600/30">
-                <i class="fa-solid fa-shield-halved text-lg"></i>
-            </div>
-            <div>
-                <h1 class="font-extrabold text-xl tracking-tight text-white">OmniTools</h1>
-                <p class="text-xs text-indigo-400 font-medium">100% Private Client-Side Studio</p>
-            </div>
-        </div>
-        <div class="flex items-center gap-4 text-xs text-slate-400">
-            <span class="hidden sm:inline"><i class="fa-solid fa-lock text-emerald-400 mr-1"></i> Zero Server Uploads</span>
-            <span class="hidden sm:inline"><i class="fa-solid fa-bolt text-amber-400 mr-1"></i> Instant Engine</span>
-            <span class="bg-slate-800 text-slate-300 px-2.5 py-1 rounded-full font-mono text-[11px] border border-slate-700">v1.0 Free</span>
+    <header class="topbar">
+        <a class="brand" href="#convert">
+            <span class="brand-logo"><svg><use href="#i-shield"/></svg></span>
+            <span>
+                <span class="brand-name">OmniTools</span>
+                <span class="brand-tag" data-i18n="tagline">Çevrimdışı · Gizli · Açık Kaynak</span>
+            </span>
+        </a>
+        <div class="status">
+            <span id="netStatus" class="pill pill-ok" title="">
+                <svg><use href="#i-lock"/></svg><span id="netStatusText">0</span>
+            </span>
+            <span id="offlineStatus" class="pill pill-muted">
+                <svg><use href="#i-wifi-off"/></svg><span id="offlineStatusText">…</span>
+            </span>
+            <button id="langToggle" class="pill pill-btn" type="button" aria-label="Language">EN</button>
         </div>
     </header>
 
-    <!-- Main Content -->
-    <main class="flex-grow max-w-5xl mx-auto w-full px-4 py-8">
+    <main class="container">
+        <section class="hero">
+            <h1 data-i18n="heroTitle">Dosyalarınız cihazınızdan hiç çıkmaz.</h1>
+            <p data-i18n="heroText">PDF birleştirme, bölme, görsel dönüştürme ve metadata temizleme; hepsi tarayıcınızın içinde, internet bağlantısı olmadan. Hesap yok, reklam yok, takip yok.</p>
+        </section>
 
-        <!-- Privacy Banner -->
-        <div class="bg-emerald-950/40 border border-emerald-800/40 rounded-xl p-3.5 mb-8 flex items-center justify-between text-xs text-emerald-300">
-            <div class="flex items-center gap-2.5">
-                <i class="fa-solid fa-shield-cat text-base text-emerald-400"></i>
-                <span><strong>Zero-Knowledge Privacy:</strong> All processing executes in your browser memory. Your files are never sent to any server.</span>
+        <nav class="tabs" role="tablist">
+            <button class="tab" role="tab" data-tab="convert"><svg><use href="#i-image"/></svg><span data-i18n="tabConvert">Görsel Dönüştür</span></button>
+            <button class="tab" role="tab" data-tab="merge"><svg><use href="#i-merge"/></svg><span data-i18n="tabMerge">PDF Birleştir</span></button>
+            <button class="tab" role="tab" data-tab="split"><svg><use href="#i-scissors"/></svg><span data-i18n="tabSplit">PDF Böl / Sayfa Seç</span></button>
+            <button class="tab" role="tab" data-tab="img2pdf"><svg><use href="#i-file"/></svg><span data-i18n="tabImg2Pdf">Görselden PDF</span></button>
+            <button class="tab" role="tab" data-tab="pdf2img"><svg><use href="#i-images"/></svg><span data-i18n="tabPdf2Img">PDF'ten Görsel</span></button>
+            <button class="tab" role="tab" data-tab="clean"><svg><use href="#i-eraser"/></svg><span data-i18n="tabClean">Metadata Temizle</span></button>
+        </nav>
+
+        <!-- 1. Image converter -->
+        <section class="panel" id="panel-convert" role="tabpanel" hidden>
+            <div class="panel-head">
+                <h2 data-i18n="convertTitle">Görsel Formatı Dönüştür</h2>
+                <p data-i18n="convertDesc">WebP, PNG, JPG, BMP, GIF ve AVIF dosyalarını toplu olarak PNG, JPG veya WebP'ye çevirin. Konum (GPS) dahil tüm EXIF bilgileri otomatik silinir.</p>
             </div>
-            <span class="hidden md:inline font-mono text-[11px] text-emerald-500">Offline Capable</span>
-        </div>
-
-        <!-- Tool Selection Tabs -->
-        <div class="flex flex-wrap items-center justify-center gap-2 mb-8">
-            <button onclick="switchTab('imgConvert')" id="tab-imgConvert" class="tab-btn px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 bg-indigo-600 text-white shadow-lg shadow-indigo-600/20">
-                <i class="fa-regular fa-image"></i> Image Converter
-            </button>
-            <button onclick="switchTab('pdfMerge')" id="tab-pdfMerge" class="tab-btn px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 bg-slate-900 text-slate-400 hover:text-white border border-slate-800">
-                <i class="fa-solid fa-object-group"></i> Merge PDFs
-            </button>
-            <button onclick="switchTab('imgToPdf')" id="tab-imgToPdf" class="tab-btn px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 bg-slate-900 text-slate-400 hover:text-white border border-slate-800">
-                <i class="fa-solid fa-file-pdf"></i> Images to PDF
-            </button>
-            <button onclick="switchTab('pdfToImg')" id="tab-pdfToImg" class="tab-btn px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 bg-slate-900 text-slate-400 hover:text-white border border-slate-800">
-                <i class="fa-regular fa-images"></i> PDF to Images
-            </button>
-        </div>
-
-        <!-- 1. MODULE: IMAGE CONVERTER -->
-        <div id="mod-imgConvert" class="tool-module bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl">
-            <div class="text-center mb-6">
-                <h2 class="text-2xl font-black text-white mb-1">Convert Image Format</h2>
-                <p class="text-xs text-slate-400">Instantly convert WebP, PNG, or JPG files without loss in quality.</p>
+            <div class="options">
+                <div class="opt">
+                    <span class="opt-label" data-i18n="targetFormat">Hedef format</span>
+                    <div class="seg" data-name="convFormat">
+                        <button type="button" data-value="image/png" class="active">PNG</button>
+                        <button type="button" data-value="image/jpeg">JPG</button>
+                        <button type="button" data-value="image/webp">WebP</button>
+                    </div>
+                </div>
+                <label class="opt" id="convQualityWrap">
+                    <span class="opt-label"><span data-i18n="quality">Kalite</span>: <output id="convQualityOut">90</output>%</span>
+                    <input type="range" id="convQuality" min="40" max="100" value="90">
+                </label>
+                <label class="opt">
+                    <span class="opt-label" data-i18n="maxWidth">Maks. genişlik (px, boş = orijinal)</span>
+                    <input type="number" id="convMaxWidth" min="16" max="16384" placeholder="—" class="input">
+                </label>
             </div>
-            
-            <div class="flex justify-center items-center gap-3 mb-6">
-                <span class="text-xs font-bold text-slate-400">Target Format:</span>
-                <div class="inline-flex rounded-lg bg-slate-950 p-1 border border-slate-800">
-                    <button id="btnImgPng" onclick="setImgFormat('image/png', 'png')" class="px-4 py-1.5 rounded-md text-xs font-bold bg-indigo-600 text-white">PNG</button>
-                    <button id="btnImgJpg" onclick="setImgFormat('image/jpeg', 'jpg')" class="px-4 py-1.5 rounded-md text-xs font-bold text-slate-400 hover:text-white">JPG</button>
+            <label class="drop" data-input="convInput" tabindex="0">
+                <input type="file" id="convInput" accept="image/*" multiple class="sr-only">
+                <svg><use href="#i-upload"/></svg>
+                <strong data-i18n="dropImages">Görselleri sürükleyip bırakın veya seçin</strong>
+                <small data-i18n="multiAllowed">Birden fazla dosya seçebilirsiniz</small>
+            </label>
+            <div class="list" id="convList"></div>
+            <div class="actions">
+                <button type="button" class="btn btn-primary" id="convRun" disabled data-i18n="convertBtn">Dönüştür</button>
+                <button type="button" class="btn" id="convZip" hidden data-i18n="downloadAllZip">Tümünü indir (ZIP)</button>
+            </div>
+            <div class="msg" id="convMsg" role="status"></div>
+            <div class="grid" id="convResults"></div>
+        </section>
+
+        <!-- 2. Merge PDFs -->
+        <section class="panel" id="panel-merge" role="tabpanel" hidden>
+            <div class="panel-head">
+                <h2 data-i18n="mergeTitle">PDF Dosyalarını Birleştir</h2>
+                <p data-i18n="mergeDesc">Birden fazla PDF'i tek dosyada birleştirin. Okları kullanarak sırayı değiştirebilirsiniz.</p>
+            </div>
+            <label class="drop" data-input="mergeInput" tabindex="0">
+                <input type="file" id="mergeInput" accept="application/pdf,.pdf" multiple class="sr-only">
+                <svg><use href="#i-upload"/></svg>
+                <strong data-i18n="dropPdfs">PDF dosyalarını sürükleyip bırakın veya seçin</strong>
+                <small data-i18n="mergeHint">En az 2 dosya · tekrar seçerek listeye ekleyebilirsiniz</small>
+            </label>
+            <div class="list" id="mergeList"></div>
+            <div class="actions">
+                <button type="button" class="btn btn-primary" id="mergeRun" disabled data-i18n="mergeBtn">Birleştir ve İndir</button>
+            </div>
+            <div class="msg" id="mergeMsg" role="status"></div>
+        </section>
+
+        <!-- 3. Split / extract -->
+        <section class="panel" id="panel-split" role="tabpanel" hidden>
+            <div class="panel-head">
+                <h2 data-i18n="splitTitle">PDF Böl / Sayfa Çıkar</h2>
+                <p data-i18n="splitDesc">İstediğiniz sayfaları seçip yeni bir PDF oluşturun ya da her sayfayı ayrı PDF olarak indirin.</p>
+            </div>
+            <label class="drop" data-input="splitInput" tabindex="0">
+                <input type="file" id="splitInput" accept="application/pdf,.pdf" class="sr-only">
+                <svg><use href="#i-upload"/></svg>
+                <strong data-i18n="dropPdf">Bir PDF dosyası sürükleyip bırakın veya seçin</strong>
+            </label>
+            <div class="list" id="splitList"></div>
+            <div class="options" id="splitOptions" hidden>
+                <label class="opt opt-wide">
+                    <span class="opt-label" data-i18n="pageRange">Sayfalar (örn. 1-3, 5, 8-)</span>
+                    <input type="text" id="splitRange" class="input" autocomplete="off" spellcheck="false">
+                </label>
+                <div class="opt">
+                    <span class="opt-label" data-i18n="output">Çıktı</span>
+                    <div class="seg" data-name="splitMode">
+                        <button type="button" data-value="single" class="active" data-i18n="splitSingle">Tek PDF</button>
+                        <button type="button" data-value="each" data-i18n="splitEach">Her sayfa ayrı (ZIP)</button>
+                    </div>
                 </div>
             </div>
-
-            <div onclick="document.getElementById('inputImgConvert').click()" class="border-2 border-dashed border-slate-700 hover:border-indigo-500 bg-slate-950/60 rounded-xl p-8 text-center cursor-pointer transition">
-                <input type="file" id="inputImgConvert" accept="image/*" class="hidden">
-                <i class="fa-solid fa-cloud-arrow-up text-3xl text-indigo-400 mb-2"></i>
-                <p class="text-white font-bold text-sm">Drag and drop or browse your image</p>
-                <p class="text-xs text-slate-500 mt-1">WebP, PNG, JPG, BMP supported</p>
+            <div class="actions">
+                <button type="button" class="btn btn-primary" id="splitRun" disabled data-i18n="splitBtn">Oluştur ve İndir</button>
             </div>
+            <div class="msg" id="splitMsg" role="status"></div>
+        </section>
 
-            <div id="resImgConvert" class="hidden mt-6 pt-6 border-t border-slate-800 flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <img id="prevImgConvert" class="w-12 h-12 object-cover rounded-lg border border-slate-700">
-                    <span id="nameImgConvert" class="text-xs font-bold truncate max-w-xs"></span>
+        <!-- 4. Images to PDF -->
+        <section class="panel" id="panel-img2pdf" role="tabpanel" hidden>
+            <div class="panel-head">
+                <h2 data-i18n="img2pdfTitle">Görsellerden PDF Oluştur</h2>
+                <p data-i18n="img2pdfDesc">Taranmış belgeleri, fişleri veya fotoğrafları tek bir PDF'e dönüştürün. Her görsel bir sayfa olur; telefon fotoğraflarının yönü korunur.</p>
+            </div>
+            <div class="options">
+                <div class="opt">
+                    <span class="opt-label" data-i18n="pageSize">Sayfa boyutu</span>
+                    <div class="seg" data-name="i2pSize">
+                        <button type="button" data-value="a4" class="active">A4</button>
+                        <button type="button" data-value="fit" data-i18n="fitImage">Görsele göre</button>
+                    </div>
                 </div>
-                <a id="downImgConvert" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-5 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-lg">
-                    <i class="fa-solid fa-download"></i> Download
-                </a>
+                <div class="opt">
+                    <span class="opt-label" data-i18n="margin">Kenar boşluğu</span>
+                    <div class="seg" data-name="i2pMargin">
+                        <button type="button" data-value="0" data-i18n="none">Yok</button>
+                        <button type="button" data-value="20" class="active" data-i18n="small">Küçük</button>
+                        <button type="button" data-value="50" data-i18n="large">Büyük</button>
+                    </div>
+                </div>
             </div>
-            <canvas id="imgCanvas" class="hidden"></canvas>
-        </div>
-
-        <!-- 2. MODULE: MERGE PDF -->
-        <div id="mod-pdfMerge" class="tool-module hidden bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl">
-            <div class="text-center mb-6">
-                <h2 class="text-2xl font-black text-white mb-1">Merge PDF Files</h2>
-                <p class="text-xs text-slate-400">Combine multiple PDF documents into a single file in seconds.</p>
+            <label class="drop" data-input="i2pInput" tabindex="0">
+                <input type="file" id="i2pInput" accept="image/*" multiple class="sr-only">
+                <svg><use href="#i-upload"/></svg>
+                <strong data-i18n="dropImages">Görselleri sürükleyip bırakın veya seçin</strong>
+                <small data-i18n="multiAllowed">Birden fazla dosya seçebilirsiniz</small>
+            </label>
+            <div class="list" id="i2pList"></div>
+            <div class="actions">
+                <button type="button" class="btn btn-primary" id="i2pRun" disabled data-i18n="createPdfBtn">PDF Oluştur ve İndir</button>
             </div>
+            <div class="msg" id="i2pMsg" role="status"></div>
+        </section>
 
-            <div onclick="document.getElementById('inputPdfMerge').click()" class="border-2 border-dashed border-slate-700 hover:border-indigo-500 bg-slate-950/60 rounded-xl p-8 text-center cursor-pointer transition">
-                <input type="file" id="inputPdfMerge" accept="application/pdf" multiple class="hidden">
-                <i class="fa-solid fa-file-circle-plus text-3xl text-indigo-400 mb-2"></i>
-                <p class="text-white font-bold text-sm">Select PDF Files (Select 2 or more)</p>
-                <p class="text-xs text-slate-500 mt-1">Processed entirely in your device RAM</p>
+        <!-- 5. PDF to images -->
+        <section class="panel" id="panel-pdf2img" role="tabpanel" hidden>
+            <div class="panel-head">
+                <h2 data-i18n="pdf2imgTitle">PDF Sayfalarını Görsele Çevir</h2>
+                <p data-i18n="pdf2imgDesc">Her sayfayı yüksek çözünürlüklü PNG veya JPG olarak çıkarın; tek tek veya ZIP olarak indirin.</p>
             </div>
-
-            <div id="listPdfMerge" class="mt-4 space-y-2"></div>
-
-            <button id="btnProcessMerge" onclick="processPdfMerge()" class="hidden w-full mt-6 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3.5 rounded-xl text-sm flex items-center justify-center gap-2 shadow-lg">
-                <i class="fa-solid fa-merge"></i> Merge & Download PDF
-            </button>
-        </div>
-
-        <!-- 3. MODULE: IMAGES TO PDF -->
-        <div id="mod-imgToPdf" class="tool-module hidden bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl">
-            <div class="text-center mb-6">
-                <h2 class="text-2xl font-black text-white mb-1">Convert Images to PDF</h2>
-                <p class="text-xs text-slate-400">Turn scanned papers, receipts, or photos into a structured PDF document.</p>
+            <div class="options">
+                <div class="opt">
+                    <span class="opt-label" data-i18n="resolution">Çözünürlük</span>
+                    <div class="seg" data-name="p2iScale">
+                        <button type="button" data-value="1">72 DPI</button>
+                        <button type="button" data-value="2" class="active">144 DPI</button>
+                        <button type="button" data-value="4">288 DPI</button>
+                    </div>
+                </div>
+                <div class="opt">
+                    <span class="opt-label" data-i18n="targetFormat">Hedef format</span>
+                    <div class="seg" data-name="p2iFormat">
+                        <button type="button" data-value="image/png" class="active">PNG</button>
+                        <button type="button" data-value="image/jpeg">JPG</button>
+                    </div>
+                </div>
             </div>
-
-            <div onclick="document.getElementById('inputImgToPdf').click()" class="border-2 border-dashed border-slate-700 hover:border-indigo-500 bg-slate-950/60 rounded-xl p-8 text-center cursor-pointer transition">
-                <input type="file" id="inputImgToPdf" accept="image/*" multiple class="hidden">
-                <i class="fa-solid fa-images text-3xl text-indigo-400 mb-2"></i>
-                <p class="text-white font-bold text-sm">Select Images (JPG, PNG, etc.)</p>
-                <p class="text-xs text-slate-500 mt-1">Each image will become an individual page</p>
+            <label class="drop" data-input="p2iInput" tabindex="0">
+                <input type="file" id="p2iInput" accept="application/pdf,.pdf" class="sr-only">
+                <svg><use href="#i-upload"/></svg>
+                <strong data-i18n="dropPdf">Bir PDF dosyası sürükleyip bırakın veya seçin</strong>
+            </label>
+            <div class="actions">
+                <button type="button" class="btn" id="p2iZip" hidden data-i18n="downloadAllZip">Tümünü indir (ZIP)</button>
             </div>
+            <div class="msg" id="p2iMsg" role="status"></div>
+            <div class="grid" id="p2iResults"></div>
+        </section>
 
-            <div id="listImgToPdf" class="mt-4 flex flex-wrap gap-2"></div>
-
-            <button id="btnProcessImgToPdf" onclick="processImgToPdf()" class="hidden w-full mt-6 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3.5 rounded-xl text-sm flex items-center justify-center gap-2 shadow-lg">
-                <i class="fa-solid fa-file-export"></i> Generate & Download PDF
-            </button>
-        </div>
-
-        <!-- 4. MODULE: PDF TO IMAGES -->
-        <div id="mod-pdfToImg" class="tool-module hidden bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl">
-            <div class="text-center mb-6">
-                <h2 class="text-2xl font-black text-white mb-1">Extract PDF Pages as Images</h2>
-                <p class="text-xs text-slate-400">Render every page of your PDF into high-resolution PNG images.</p>
+        <!-- 6. Metadata cleaner -->
+        <section class="panel" id="panel-clean" role="tabpanel" hidden>
+            <div class="panel-head">
+                <h2 data-i18n="cleanTitle">PDF Metadata Temizleyici</h2>
+                <p data-i18n="cleanDesc">PDF'ler yazar adı, kullanılan program, oluşturma tarihi ve benzersiz belge kimliği gibi gizli bilgiler taşır. Paylaşmadan önce bunları silin.</p>
             </div>
-
-            <div onclick="document.getElementById('inputPdfToImg').click()" class="border-2 border-dashed border-slate-700 hover:border-indigo-500 bg-slate-950/60 rounded-xl p-8 text-center cursor-pointer transition">
-                <input type="file" id="inputPdfToImg" accept="application/pdf" class="hidden">
-                <i class="fa-solid fa-file-image text-3xl text-indigo-400 mb-2"></i>
-                <p class="text-white font-bold text-sm">Select a PDF File</p>
-                <p class="text-xs text-slate-500 mt-1">Pages will be rendered individually for download</p>
+            <label class="drop" data-input="cleanInput" tabindex="0">
+                <input type="file" id="cleanInput" accept="application/pdf,.pdf" multiple class="sr-only">
+                <svg><use href="#i-upload"/></svg>
+                <strong data-i18n="dropPdfs">PDF dosyalarını sürükleyip bırakın veya seçin</strong>
+            </label>
+            <div id="cleanReport"></div>
+            <div class="actions">
+                <button type="button" class="btn btn-primary" id="cleanRun" disabled data-i18n="cleanBtn">Temizle ve İndir</button>
             </div>
+            <div class="msg" id="cleanMsg" role="status"></div>
+        </section>
 
-            <div id="containerPdfPages" class="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-4"></div>
-        </div>
-
-        <!-- AdSense Container Area -->
-        <div class="border border-dashed border-slate-800 rounded-xl py-6 my-10 text-center text-xs text-slate-600">
-            <span>[ Advertisement Container - Google AdSense ]</span>
-        </div>
-
-        <!-- SEO Information Architecture -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-slate-400 text-xs">
-            <div class="bg-slate-900/60 p-5 rounded-xl border border-slate-800">
-                <h3 class="font-bold text-white text-sm mb-1.5"><i class="fa-solid fa-shield-halved text-indigo-400 mr-1"></i> Privacy Guaranteed</h3>
-                <p>Unlike traditional online tools, your files never touch an external server. Everything stays completely in your browser memory.</p>
-            </div>
-            <div class="bg-slate-900/60 p-5 rounded-xl border border-slate-800">
-                <h3 class="font-bold text-white text-sm mb-1.5"><i class="fa-solid fa-gauge-high text-indigo-400 mr-1"></i> No File Size Limits</h3>
-                <p>Since bandwidth is not consumed by uploading and downloading large files, processing takes place instantaneously using your computer's power.</p>
-            </div>
-            <div class="bg-slate-900/60 p-5 rounded-xl border border-slate-800">
-                <h3 class="font-bold text-white text-sm mb-1.5"><i class="fa-solid fa-infinity text-indigo-400 mr-1"></i> Truly Free</h3>
-                <p>No account required, no subscription paywalls, and no hidden watermarks. Completely unrestricted access.</p>
-            </div>
-        </div>
-
+        <section class="features">
+            <article>
+                <svg><use href="#i-lock"/></svg>
+                <h3 data-i18n="f1Title">Teknik olarak kanıtlanabilir gizlilik</h3>
+                <p data-i18n="f1Text">Sayfa, tarayıcının güvenlik politikasıyla (CSP: connect-src 'none') hiçbir ağ bağlantısı açamayacak şekilde kilitlidir. "Yüklemiyoruz" demiyoruz; yükleyemiyoruz.</p>
+            </article>
+            <article>
+                <svg><use href="#i-wifi-off"/></svg>
+                <h3 data-i18n="f2Title">Gerçekten çevrimdışı</h3>
+                <p data-i18n="f2Text">Hiçbir CDN'e bağımlı değildir. Uygulama olarak yükleyin (PWA) veya klasörü USB belleğe kopyalayıp index.html'i açın.</p>
+            </article>
+            <article>
+                <svg><use href="#i-pin"/></svg>
+                <h3 data-i18n="f3Title">Gizli izleri siler</h3>
+                <p data-i18n="f3Text">Fotoğraflardaki GPS konumu ve cihaz bilgisi (EXIF), PDF'lerdeki yazar ve belge kimliği otomatik temizlenir.</p>
+            </article>
+            <article>
+                <svg><use href="#i-code"/></svg>
+                <h3 data-i18n="f4Title">Ücretsiz ve açık kaynak</h3>
+                <p data-i18n="f4Text">MIT lisanslı. Kurulum, derleme veya hesap gerekmez; kodun tamamını okuyup doğrulayabilirsiniz.</p>
+            </article>
+        </section>
     </main>
 
-    <!-- Footer -->
-    <footer class="border-t border-slate-800 py-6 text-center text-xs text-slate-500">
-        <p>© 2026 OmniTools. Processed strictly client-side.</p>
+    <footer class="footer">
+        <p><span data-i18n="footer">MIT Lisansı · Çerez yok · Analitik yok · Sunucu yok</span> · <a href="https://github.com/omergns0/omnitools" rel="noopener noreferrer">GitHub</a></p>
     </footer>
-
-    <!-- Logic Script -->
-    <script>
-        function switchTab(modId) {
-            document.querySelectorAll('.tool-module').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.tab-btn').forEach(el => {
-                el.className = 'tab-btn px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 bg-slate-900 text-slate-400 hover:text-white border border-slate-800';
-            });
-            
-            document.getElementById('mod-' + modId).classList.remove('hidden');
-            document.getElementById('tab-' + modId).className = 'tab-btn px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 bg-indigo-600 text-white shadow-lg shadow-indigo-600/20';
-        }
-
-        /* 1. Image Converter */
-        let imgMime = 'image/png';
-        let imgExt = 'png';
-        function setImgFormat(mime, ext) {
-            imgMime = mime; imgExt = ext;
-            document.getElementById('btnImgPng').className = ext === 'png' ? 'px-4 py-1.5 rounded-md text-xs font-bold bg-indigo-600 text-white' : 'px-4 py-1.5 rounded-md text-xs font-bold text-slate-400 hover:text-white';
-            document.getElementById('btnImgJpg').className = ext === 'jpg' ? 'px-4 py-1.5 rounded-md text-xs font-bold bg-indigo-600 text-white' : 'px-4 py-1.5 rounded-md text-xs font-bold text-slate-400 hover:text-white';
-            const f = document.getElementById('inputImgConvert').files[0];
-            if (f) processImg(f);
-        }
-        document.getElementById('inputImgConvert').addEventListener('change', (e) => {
-            if (e.target.files[0]) processImg(e.target.files[0]);
-        });
-        function processImg(file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const img = new Image();
-                img.onload = () => {
-                    const canvas = document.getElementById('imgCanvas');
-                    const ctx = canvas.getContext('2d');
-                    canvas.width = img.width; canvas.height = img.height;
-                    if (imgExt === 'jpg') {
-                        ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0,0,canvas.width,canvas.height);
-                    } else {
-                        ctx.clearRect(0,0,canvas.width,canvas.height);
-                    }
-                    ctx.drawImage(img, 0, 0);
-                    const dataUrl = canvas.toDataURL(imgMime, 0.95);
-                    document.getElementById('prevImgConvert').src = dataUrl;
-                    document.getElementById('nameImgConvert').innerText = file.name;
-                    const down = document.getElementById('downImgConvert');
-                    down.href = dataUrl;
-                    down.download = file.name.split('.')[0] + '-converted.' + imgExt;
-                    document.getElementById('resImgConvert').classList.remove('hidden');
-                };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
-
-        /* 2. Merge PDF */
-        let mergeFiles = [];
-        document.getElementById('inputPdfMerge').addEventListener('change', (e) => {
-            mergeFiles = Array.from(e.target.files);
-            const list = document.getElementById('listPdfMerge');
-            list.innerHTML = '';
-            if (mergeFiles.length > 0) {
-                mergeFiles.forEach((f, i) => {
-                    list.innerHTML += `<div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800 text-xs flex justify-between items-center">
-                        <span class="truncate"><i class="fa-solid fa-file-pdf text-red-500 mr-2"></i> ${i+1}. ${f.name}</span>
-                        <span class="text-slate-500 font-mono">${(f.size/1024/1024).toFixed(2)} MB</span>
-                    </div>`;
-                });
-                document.getElementById('btnProcessMerge').classList.remove('hidden');
-            }
-        });
-        async function processPdfMerge() {
-            if (mergeFiles.length < 2) {
-                alert('Please select at least 2 PDF files to merge.');
-                return;
-            }
-            const btn = document.getElementById('btnProcessMerge');
-            btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Merging in Browser...';
-            
-            const mergedPdf = await PDFLib.PDFDocument.create();
-            for (const file of mergeFiles) {
-                const arrayBuffer = await file.arrayBuffer();
-                const pdf = await PDFLib.PDFDocument.load(arrayBuffer);
-                const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
-                copiedPages.forEach(p => mergedPdf.addPage(p));
-            }
-            const pdfBytes = await mergedPdf.save();
-            const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-            const url = URL.createObjectURL(blob);
-            
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'merged-document.pdf';
-            a.click();
-            btn.innerHTML = '<i class="fa-solid fa-check text-emerald-400"></i> Done! Download Again';
-        }
-
-        /* 3. Images to PDF */
-        let imgToPdfFiles = [];
-        document.getElementById('inputImgToPdf').addEventListener('change', (e) => {
-            imgToPdfFiles = Array.from(e.target.files);
-            const list = document.getElementById('listImgToPdf');
-            list.innerHTML = '';
-            if (imgToPdfFiles.length > 0) {
-                imgToPdfFiles.forEach(f => {
-                    list.innerHTML += `<div class="bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800 text-xs text-slate-300">
-                        <i class="fa-regular fa-image text-indigo-400 mr-1"></i> ${f.name}
-                    </div>`;
-                });
-                document.getElementById('btnProcessImgToPdf').classList.remove('hidden');
-            }
-        });
-        async function processImgToPdf() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            const btn = document.getElementById('btnProcessImgToPdf');
-            btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Compiling PDF...';
-
-            for (let i = 0; i < imgToPdfFiles.length; i++) {
-                if (i > 0) doc.addPage();
-                const file = imgToPdfFiles[i];
-                const base64 = await new Promise(resolve => {
-                    const r = new FileReader();
-                    r.onload = ev => resolve(ev.target.result);
-                    r.readAsDataURL(file);
-                });
-                doc.addImage(base64, 'JPEG', 10, 10, 190, 0);
-            }
-            doc.save('converted-images.pdf');
-            btn.innerHTML = '<i class="fa-solid fa-check text-emerald-400"></i> Done! Download Again';
-        }
-
-        /* 4. PDF to Images */
-        document.getElementById('inputPdfToImg').addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            const container = document.getElementById('containerPdfPages');
-            container.innerHTML = '<p class="text-xs text-indigo-400 col-span-3 text-center"><i class="fa-solid fa-spinner animate-spin"></i> Rendering pages locally...</p>';
-
-            const arrayBuffer = await file.arrayBuffer();
-            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-            container.innerHTML = '';
-
-            for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-                const page = await pdf.getPage(pageNum);
-                const viewport = page.getViewport({ scale: 1.5 });
-                
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                canvas.height = viewport.height;
-                canvas.width = viewport.width;
-
-                await page.render({ canvasContext: ctx, viewport: viewport }).promise;
-                const imgUrl = canvas.toDataURL('image/png');
-
-                const card = document.createElement('div');
-                card.className = 'bg-slate-950 border border-slate-800 rounded-xl p-3 flex flex-col items-center gap-2';
-                card.innerHTML = `
-                    <img src="${imgUrl}" class="w-full h-36 object-contain rounded border border-slate-900 bg-white">
-                    <span class="text-[11px] font-bold text-slate-400">Page ${pageNum}</span>
-                    <a href="${imgUrl}" download="page-${pageNum}.png" class="w-full bg-slate-900 hover:bg-indigo-600 text-white font-bold py-1.5 rounded-lg text-center text-xs transition">
-                        <i class="fa-solid fa-download"></i> Download PNG
-                    </a>
-                `;
-                container.appendChild(card);
-            }
-        });
-    </script>
 </body>
 </html>

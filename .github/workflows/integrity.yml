@@ -1,0 +1,32 @@
+name: integrity
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Vendored libraries match pinned checksums
+        run: cd vendor && sha512sum -c SHA512SUMS
+
+      - name: No external URLs in app code
+        run: |
+          # Allowed: the project's own GitHub link and the SVG XML namespace.
+          if grep -nE "https?://" index.html sw.js manifest.webmanifest css/*.css js/*.js \
+             | grep -vE "github\.com/omergns0/omnitools|www\.w3\.org/2000/svg"; then
+            echo "::error::External URL found. OmniTools must not load anything from the network."
+            exit 1
+          fi
+
+      - name: CSP still blocks network access
+        run: grep -q "connect-src 'none'" index.html
+
+      - name: JavaScript syntax
+        run: for f in js/*.js sw.js; do node --check "$f"; done
